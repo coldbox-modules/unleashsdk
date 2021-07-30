@@ -5,6 +5,8 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/app" {
         
         getController().getModuleService()
             .registerAndActivateModule( "app", "testingModuleRoot" );
+
+        getWireBox().autowire( this );
     }
 
     /**
