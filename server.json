@@ -1,0 +1,12 @@
+{
+    "name":"unleashsdk",
+    "web":{
+        "http":{
+            "port":"61442"
+        }
+    },
+    "app":{
+        "cfengine":"adobe@2018"
+    },
+    "directoryBrowsing":"true"
+}
