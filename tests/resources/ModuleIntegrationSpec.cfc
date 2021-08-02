@@ -4,7 +4,7 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/app" {
         super.beforeAll();
         
         getController().getModuleService()
-            .registerAndActivateModule( "app", "testingModuleRoot" );
+            .registerAndActivateModule( "unleashsdk", "testingModuleRoot" );
 
         getWireBox().autowire( this );
     }

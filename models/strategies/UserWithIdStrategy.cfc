@@ -5,7 +5,10 @@ component implements="IStrategy" singleton {
     }
 
     public boolean function isEnabled( struct parameters, struct context ) {
-        return true;
+        if ( !arguments.parameters.keyExists( "userIds" ) ) {
+            return true;
+        }
+        return listContains( arguments.parameters.userIds, arguments.context.userId, ", " );
     }
 
 }

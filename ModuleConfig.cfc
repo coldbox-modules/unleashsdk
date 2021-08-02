@@ -10,7 +10,8 @@ component {
             "environment": variables.controller.getSetting( "environment" ),
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
-            "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" )
+            "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
+            "cacheTimeout": createTimeSpan( 0, 0, 0, 1 )
         };
 	}
 

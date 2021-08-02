@@ -9,11 +9,12 @@ services:
         expose:
             - "61442"
         environment:
+            APP_DIR: /unleashsdk
             PORT: 61442
             BOX_SERVER_PROFILE: development
             UNLEASH_API_URL: http://unleash:4242/api
         volumes:
-            - .:/app
+            - .:/unleashsdk
 
     unleash:
         image: unleashorg/unleash-server:4.0.10

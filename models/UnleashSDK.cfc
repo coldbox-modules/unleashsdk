@@ -1,19 +1,21 @@
 component singleton accessors="true" {
 
+    property name="settings" inject="coldbox:moduleSettings:unleashsdk";
     property name="client" inject="UnleashHyperClient@unleashsdk";
-    property name="cache" inject="cachebox:default";
     property name="log" inject="logbox:logger:{this}";
+    property name="cache" inject="cachebox:default";
+    property name="wirebox" inject="wirebox";
 
     variables.strategies = {
-        "default": "DefaultStrategy",
-        "userWithId": "UserWithIdStrategy",
-        "flexibleRollout": "FlexibleRolloutStrategy",
-        "remoteAddress": "RemoteAddressStrategy",
-        "applicationHostname": "ApplicationHostnameStrategy"
+        "default": "DefaultStrategy@unleashsdk",
+        "userWithId": "UserWithIdStrategy@unleashsdk",
+        "flexibleRollout": "FlexibleRolloutStrategy@unleashsdk",
+        "remoteAddress": "RemoteAddressStrategy@unleashsdk",
+        "applicationHostname": "ApplicationHostnameStrategy@unleashsdk"
     };
 
     public boolean function isEnabled( required string name, boolean defaultValue = false ) {
-        var feature = findFeature( arguments.name );
+        var feature = getFeature( arguments.name );
         if ( isNull( feature ) ) {
             return arguments.defaultValue;
         }
@@ -29,17 +31,21 @@ component singleton accessors="true" {
             }
 
             param strategyData.constraints = [];
-            if ( !strategy.satisfiesConstraints( strategyData.constraints ) ) {
+            if ( !strategy.satisfiesConstraints( strategyData.constraints, getContext() ) ) {
                 continue;    
             }
             
             param strategyData.parameters = {};
-            if ( !strategy.isEnabled( strategyData.parameters ) ) {
+            if ( !strategy.isEnabled( strategyData.parameters, getContext() ) ) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    public boolean function isDisabled( required string name, boolean defaultValue = false ) {
+        return !isEnabled( argumentCollection = arguments );
     }
 
     private any function getStrategy( required string name ) {
@@ -49,7 +55,7 @@ component singleton accessors="true" {
         }
 
         if ( isSimpleValue( variables.strategies[ arguments.name ] ) ) {
-            variables.strategies[ arguments.name ] = new "unleashsdk.models.strategies.#variables.strategies[ arguments.name ]#"();
+            variables.strategies[ arguments.name ] = wirebox.getInstance( variables.strategies[ arguments.name ] );
         }
 
         return variables.strategies[ arguments.name ];
@@ -81,27 +87,50 @@ component singleton accessors="true" {
         boolean enabled = true,
         array strategies = []
     ) {
-        var feature = findFeature( arguments.name );
+        var feature = getFeature( arguments.name );
         if ( !isNull( feature ) ) {
             return feature;
         }
         return createFeature( argumentCollection = arguments );
     }
 
-    private any function findFeature( required string name ) {
-        return arrayFindFirst( fetchFeatures(), function( feature ) {
+    public any function getFeature( required string name ) {
+        return arrayFindFirst( getFeatures(), function( feature ) {
             return feature.name == name;
         } );
     }
 
     public array function getFeatures() {
-        return cache.getOrSet( "unleashsdk-features", function() {
-            return fetchFeatures();
-        }, createTimespan( 0, 0, 10, 0 ) );
+        try {
+            return cache.getOrSet( "unleashsdk-features", function() {
+                var features = fetchFeatures();
+                cache.set( "unleashsdk-failover", features, 0 );
+                return features;
+            }, variables.settings.cacheTimeout );
+        } catch ( any e ) {
+            if ( log.canError() ) {
+                log.error( "Exception occurred while retrieving Unleash features.  Using failover", e );
+            }
+            var features = cache.get( "unleashsdk-failover" );
+            if ( isNull( features ) ) {
+                return [];
+            }
+            return features;
+        }
     }
 
     private array function fetchFeatures() {
         return variables.client.get( "/client/features" ).json().features;
+    }
+
+    private struct function getContext() {
+        param request.unleashContext = generateContext();
+        return request.unleashContext;
+    }
+
+    private struct function generateContext() {
+        var contextProvider = wirebox.getInstance( variables.settings.contextProvider );
+        return contextProvider.getContext();
     }
 
     private any function arrayFindFirst( required array items, required function predicate ) {
