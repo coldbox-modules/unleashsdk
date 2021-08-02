@@ -34,7 +34,7 @@ component singleton accessors="true" {
             if ( !satisfiesConstraints( strategyData.constraints ) ) {
                 continue;
             }
-            
+
             param strategyData.parameters = {};
             if ( !strategy.isEnabled( strategyData.parameters, getContext() ) ) {
                 return false;
@@ -125,17 +125,18 @@ component singleton accessors="true" {
 
     private boolean function satisfiesConstraints( required array constraints ) {
         for ( var constraint in arguments.constraints ) {
-            var satisfies = strategy.satisfiesConstraint(
-                contextName = constraint.contextName,
-                operator = constraint.operator,
-                values = constraint.values,
-                context = getContext()
-            );
-            if ( !satisfies ) {
+            if ( !satisfiesConstraint( constraint ) ) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean function satisfiesConstraint( required struct constraint ) {
+        var context = getContext();
+        var contextValue = context[ arguments.constraint.contextName ];
+        var valuePresent = arrayContainsNoCase( arguments.constraint.values, contextValue );
+        return arguments.constraint.operator == "IN" ? valuePresent : !valuePresent;
     }
 
     private struct function getContext() {
