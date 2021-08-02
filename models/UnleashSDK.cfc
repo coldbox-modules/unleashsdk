@@ -31,8 +31,8 @@ component singleton accessors="true" {
             }
 
             param strategyData.constraints = [];
-            if ( !strategy.satisfiesConstraints( strategyData.constraints, getContext() ) ) {
-                continue;    
+            if ( !satisfiesConstraints( strategyData.constraints ) ) {
+                continue;
             }
             
             param strategyData.parameters = {};
@@ -121,6 +121,21 @@ component singleton accessors="true" {
 
     private array function fetchFeatures() {
         return variables.client.get( "/client/features" ).json().features;
+    }
+
+    private boolean function satisfiesConstraints( required array constraints ) {
+        for ( var constraint in arguments.constraints ) {
+            var satisfies = strategy.satisfiesConstraint(
+                contextName = constraint.contextName,
+                operator = constraint.operator,
+                values = constraint.values,
+                context = getContext()
+            );
+            if ( !satisfies ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private struct function getContext() {
