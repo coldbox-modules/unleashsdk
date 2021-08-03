@@ -1,7 +1,8 @@
 component {
 
+    property name="javaInetAddress" inject="java:java.net.InetAddress";
     property name="environment" inject="coldbox:setting:environment";
-    property name="event" inject="coldbox:requestContext";
+    property name="javaSystem" inject="java:java.lang.System";
 
     public struct function getContext() {
         return {
@@ -9,7 +10,8 @@ component {
             "environment": variables.environment,
             "userId": "",
             "sessionId": getSessionId(),
-            "remoteAddress": CGI.REMOTE_ADDR
+            "remoteAddress": CGI.REMOTE_ADDR,
+            "hostname": resolveHostname()
         };
     }
 
@@ -21,12 +23,24 @@ component {
         }
     }
 
-    private function getSessionId() {
+    private string function getSessionId() {
         try {
             return session.sessionid;
         } catch ( any e ) {
             return "";
         }
+    }
+
+    private string function resolveHostname() {
+        var hostname = javaSystem.getProperty( "hostname" );
+        if ( isNull( hostname ) ) {
+            try {
+                hostname = javaInetAddress.getLocalHost().getHostName();
+            } catch ( UnknownHostException e ) {
+                hostname = "undefined";
+            }
+        }
+        return hostname;
     }
 
 }

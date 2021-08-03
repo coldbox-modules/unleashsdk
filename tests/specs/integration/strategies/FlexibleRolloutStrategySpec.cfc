@@ -1,7 +1,5 @@
 component extends="tests.resources.ModuleIntegrationSpec" {
 
-    property name="cache" inject="cachebox:default";
-
     function beforeAll() {
         super.beforeAll();
         variables.strategy = getInstance( "FlexibleRolloutStrategy@unleashsdk" );
@@ -16,7 +14,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
                         "stickiness": "default",
                         "groupId": "Feature.flexibleRollout.100"
                     },
-                    context = {}
+                    context = getTestContext()
                 );
                 expect( result ).toBeTrue();
             } );
@@ -28,15 +26,15 @@ component extends="tests.resources.ModuleIntegrationSpec" {
                         "stickiness": "default",
                         "groupId": "Feature.flexibleRollout.0"
                     },
-                    context = {
+                    context = getTestContext( {
                         "sessionId": "147",
                         "userId": "12"
-                    }
+                    } )
                 );
                 expect( result ).toBeFalse();
             } );
 
-            it( "should be enabled for userId=174 in rollout of 10", function() {
+            it( "should be enabled for userId 174 in rollout of 10", function() {
                 var result = variables.strategy.isEnabled(
                     parameters = {
                         "rollout": "10",
@@ -50,7 +48,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
                 expect( result ).toBeTrue();
             } );
 
-            it( "should be disabled for userId=499 in rollout of 10", function() {
+            it( "should be disabled for userId 499 in rollout of 10", function() {
                 var result = variables.strategy.isEnabled(
                     parameters = {
                         "rollout": "10",
@@ -64,7 +62,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
                 expect( result ).toBeFalse();
             } );
 
-            it( "should be disabled for sessionId=25 for a userId specific version", function() {
+            it( "should be disabled for sessionId 25 for a userId specific version", function() {
                 var result = variables.strategy.isEnabled(
                     parameters = {
                         "rollout": "55",

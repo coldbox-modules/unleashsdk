@@ -1,7 +1,5 @@
 component extends="tests.resources.ModuleIntegrationSpec" {
 
-    property name="cache" inject="cachebox:default";
-
     function beforeAll() {
         super.beforeAll();
         variables.unleash = getInstance( "UnleashSDK@unleashsdk" );
