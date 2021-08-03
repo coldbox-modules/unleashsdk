@@ -35,7 +35,7 @@
     "testbox":{
         "reporter":"json",
         "runner":"http://127.0.0.1:61442/tests/runner.cfm",
-        "verbose":"false",
+        "verbose":"true",
         "watchDelay":"1000"
     },
     "ignore":[
