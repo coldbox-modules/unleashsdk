@@ -11,7 +11,7 @@ component {
     rootPath = REReplaceNoCase( this.mappings[ "/tests" ], "tests(\\|/)", "" );
     this.mappings[ "/root" ] = rootPath;
     this.mappings[ "/unleashsdk" ] = rootPath;
-    this.mappings[ "/testingModuleRoot" ] = "/";
+    this.mappings[ "/testingModuleRoot" ] = "/app";
     this.mappings[ "/app" ] = testsPath & "resources/app";
     this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "/testbox";
@@ -48,7 +48,11 @@ component {
                 "password": "unleash4all"
             })#" );
         }
-        var authCookie = listFirst( local.res.Responseheader[ "Set-Cookie" ], ";" );
+        var authCookie = local.res.Responseheader[ "Set-Cookie" ];
+        if ( isArray( authCookie ) ) {
+            authCookie = authCookie[ 1 ];
+        }
+        authCookie = listFirst( authCookie, ";" );
         cookie[ "unleash-session" ] = listRest( urlDecode( authCookie ), "=" );
     }
 
