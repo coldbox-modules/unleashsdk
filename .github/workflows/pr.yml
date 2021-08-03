@@ -53,7 +53,7 @@ jobs:
       - name: Start server
         run: |
           docker-compose up -d
-          sleep 60
+          sleep 120
           docker-compose ps
 
       - name: Run TestBox Tests
