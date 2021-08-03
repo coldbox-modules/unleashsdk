@@ -34,7 +34,7 @@
     },
     "testbox":{
         "reporter":"json",
-        "runner":"http://127.0.0.1:52482/tests/runner.cfm",
+        "runner":"http://127.0.0.1:61442/tests/runner.cfm",
         "verbose":"false",
         "watchDelay":"1000"
     },
@@ -42,7 +42,6 @@
         "**/.*",
         "test",
         "tests",
-        "server.json",
-        "quick300.png"
+        "server.json"
     ]
 }
