@@ -16,6 +16,14 @@ component {
     this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "/testbox";
 
+    this.javaSettings = {
+		loadPaths = [
+            expandPath( "../lib" )
+        ],
+		loadColdFusionClassPath = true,
+		reloadOnChange = false
+	};
+
     function onRequestStart() {
         setting requestTimeout="180";
         structDelete( application, "cbController" );
