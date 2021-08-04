@@ -11,7 +11,6 @@ component {
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
             "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
-            "cacheTimeout": createTimeSpan( 0, 0, 0, 10 ),
             "refreshInterval": 10
         };
 
