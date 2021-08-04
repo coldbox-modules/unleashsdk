@@ -4,9 +4,9 @@
 
 ### Requirements
 
-Adobe ColdFusion 2018+
-Lucee 5+
-ColdBox 6+
+- Adobe ColdFusion 2018+
+- Lucee 5+
+- ColdBox 6+
 
 This module takes heavy advantage of ColdBox's async scheduling. There are no plans to make this module work outside of ColdBox.
 
