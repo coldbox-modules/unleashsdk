@@ -14,7 +14,11 @@ component singleton accessors="true" {
 		"applicationHostname" : "ApplicationHostnameStrategy@unleashsdk"
 	};
 
-	public boolean function isEnabled( required string name, boolean defaultValue = false ) {
+	public boolean function isEnabled(
+        required string name,
+        struct additionalContext = {},
+        boolean defaultValue = false
+    ) {
 		var feature = getFeature( arguments.name );
 		if ( isNull( feature ) ) {
 			return arguments.defaultValue;
@@ -24,6 +28,12 @@ component singleton accessors="true" {
 			return false;
 		}
 
+        var context = getContext( arguments.additionalContext );
+
+        if ( feature.strategies.isEmpty() ) {
+            return true;
+        }
+
 		for ( var strategyData in feature.strategies ) {
 			var strategy = getStrategy( strategyData.name );
 			if ( isNull( strategy ) ) {
@@ -31,20 +41,24 @@ component singleton accessors="true" {
 			}
 
 			param strategyData.constraints = [];
-			if ( !satisfiesConstraints( strategyData.constraints ) ) {
+			if ( !satisfiesConstraints( strategyData.constraints, context ) ) {
 				continue;
 			}
 
 			param strategyData.parameters = {};
-			if ( !strategy.isEnabled( strategyData.parameters, getContext() ) ) {
-				return false;
+			if ( strategy.isEnabled( strategyData.parameters, context ) ) {
+				return true;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
-	public boolean function isDisabled( required string name, boolean defaultValue = false ) {
+	public boolean function isDisabled(
+        required string name,
+        struct additionalContext = {},
+        boolean defaultValue = false
+    ) {
 		return !isEnabled( argumentCollection = arguments );
 	}
 
@@ -130,25 +144,25 @@ component singleton accessors="true" {
 		return variables.client.get( "/client/features" ).json().features;
 	}
 
-	private boolean function satisfiesConstraints( required array constraints ) {
+	private boolean function satisfiesConstraints( required array constraints, required struct context ) {
 		for ( var constraint in arguments.constraints ) {
-			if ( !satisfiesConstraint( constraint ) ) {
+			if ( !satisfiesConstraint( constraint, arguments.context ) ) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private boolean function satisfiesConstraint( required struct constraint ) {
-		var context      = getContext();
+	private boolean function satisfiesConstraint( required struct constraint, required struct context ) {
 		var contextValue = context[ arguments.constraint.contextName ];
 		var valuePresent = arrayContainsNoCase( arguments.constraint.values, contextValue );
 		return arguments.constraint.operator == "IN" ? valuePresent : !valuePresent;
 	}
 
-	private struct function getContext() {
+	private struct function getContext( struct additionalContext = {} ) {
 		param request.unleashContext = generateContext();
-		return request.unleashContext;
+        structAppend( arguments.additionalContext, request.unleashContext, false );
+		return arguments.additionalContext;
 	}
 
 	private struct function generateContext() {

@@ -11,7 +11,7 @@ component {
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
             "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
-            "cacheTimeout": createTimeSpan( 0, 0, 0, 1 )
+            "cacheTimeout": createTimeSpan( 0, 0, 0, 10 )
         };
 	}
 
@@ -24,15 +24,15 @@ component {
                 bodyFormat = "json",
                 headers = {
                     "Authorization": settings.apiToken,
-                "Content-Type": "application/json"
+                    "Content-Type": "application/json"
                 }
             );
 
         binder.map( "UnleashSDK@unleashsdk" )
-            .to( "#moduleMapping#.models.UnleashSDK" )
+            .to( "#moduleMapping#.models.UnleashSDK" );
 
         binder.map( "@unleashsdk" )
-            .toDSL( "UnleashSDK@unleashsdk" )
+            .toDSL( "UnleashSDK@unleashsdk" );
 	}
 
 }
