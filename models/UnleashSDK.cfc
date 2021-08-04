@@ -15,10 +15,10 @@ component singleton accessors="true" {
 	};
 
 	public boolean function isEnabled(
-        required string name,
-        struct additionalContext = {},
-        boolean defaultValue = false
-    ) {
+		required string name,
+		struct additionalContext = {},
+		boolean defaultValue     = false
+	) {
 		var feature = getFeature( arguments.name );
 		if ( isNull( feature ) ) {
 			return arguments.defaultValue;
@@ -28,11 +28,11 @@ component singleton accessors="true" {
 			return false;
 		}
 
-        var context = getContext( arguments.additionalContext );
+		var context = getContext( arguments.additionalContext );
 
-        if ( feature.strategies.isEmpty() ) {
-            return true;
-        }
+		if ( feature.strategies.isEmpty() ) {
+			return true;
+		}
 
 		for ( var strategyData in feature.strategies ) {
 			var strategy = getStrategy( strategyData.name );
@@ -55,10 +55,10 @@ component singleton accessors="true" {
 	}
 
 	public boolean function isDisabled(
-        required string name,
-        struct additionalContext = {},
-        boolean defaultValue = false
-    ) {
+		required string name,
+		struct additionalContext = {},
+		boolean defaultValue     = false
+	) {
 		return !isEnabled( argumentCollection = arguments );
 	}
 
@@ -118,26 +118,17 @@ component singleton accessors="true" {
 	}
 
 	public array function getFeatures() {
-		try {
-			return cache.getOrSet(
-				"unleashsdk-features",
-				function() {
-					var features = fetchFeatures();
-					cache.set( "unleashsdk-failover", features, 0 );
-					return features;
-				},
-				variables.settings.cacheTimeout
-			);
-		} catch ( any e ) {
-			if ( log.canError() ) {
-				log.error( "Exception occurred while retrieving Unleash features.  Using failover", e );
-			}
-			var features = cache.get( "unleashsdk-failover" );
-			if ( isNull( features ) ) {
-				return [];
-			}
-			return features;
+		var features = cache.get( "unleashsdk-failover" );
+		if ( isNull( features ) ) {
+			return [];
 		}
+		return features;
+	}
+
+	public array function refreshFeatures() {
+		var features = fetchFeatures();
+		cache.set( "unleashsdk-failover", features, 0 );
+		return features;
 	}
 
 	private array function fetchFeatures() {
@@ -161,7 +152,11 @@ component singleton accessors="true" {
 
 	private struct function getContext( struct additionalContext = {} ) {
 		param request.unleashContext = generateContext();
-        structAppend( arguments.additionalContext, request.unleashContext, false );
+		structAppend(
+			arguments.additionalContext,
+			request.unleashContext,
+			false
+		);
 		return arguments.additionalContext;
 	}
 
