@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
 	property name="settings" inject="coldbox:moduleSettings:unleashsdk";
+	property name="config"   inject="coldbox:moduleConfig:unleashsdk";
 	property name="client"   inject="UnleashHyperClient@unleashsdk";
 	property name="log"      inject="logbox:logger:{this}";
 	property name="cache"    inject="cachebox:default";
@@ -14,7 +15,36 @@ component singleton accessors="true" {
 		"applicationHostname" : "ApplicationHostnameStrategy@unleashsdk"
 	};
 
+	function onDIComplete() {
+		variables.metricsBucket = newMetricsBucket();
+	}
+
+	function register() {
+		var registrationInfo = {
+			"appName"    : variables.settings.appName,
+			"instanceId" : variables.settings.instanceId,
+			"sdkVersion" : "coldbox-modules/unleashsdk:#variables.config.version#",
+			"strategies" : variables.strategies.keyArray(),
+			"started"    : getIsoTimeString( now() ),
+			"interval"   : variables.settings.metricsInterval * 1000
+		};
+		if ( log.canInfo() ) {
+			log.info( "Registering instance with Unleash", registrationInfo );
+		}
+		variables.client.post( "/client/register", registrationInfo );
+	}
+
 	public boolean function isEnabled(
+		required string name,
+		struct additionalContext = {},
+		boolean defaultValue     = false
+	) {
+		var enabled = checkEnabled( argumentCollection = arguments );
+		countForMetrics( arguments.name, enabled );
+		return enabled;
+	}
+
+	public boolean function checkEnabled(
 		required string name,
 		struct additionalContext = {},
 		boolean defaultValue     = false
@@ -131,6 +161,34 @@ component singleton accessors="true" {
 		return features;
 	}
 
+	public struct function sendMetrics() {
+		var bucketToSend        = variables.metricsBucket;
+		variables.metricsBucket = newMetricsBucket();
+		bucketToSend.stop       = getIsoTimeString( now() );
+		var metrics             = {
+			"appName"    : variables.settings.appName,
+			"instanceId" : variables.settings.instanceId,
+			"bucket"     : bucketToSend
+		};
+		variables.client.post( "/client/metrics", metrics );
+		return metrics;
+	}
+
+	private void function countForMetrics( required string name, required boolean enabled ) {
+		if ( !variables.metricsBucket.toggles.keyExists( arguments.name ) ) {
+			variables.metricsBucket.toggles[ arguments.name ] = { "yes" : 0, "no" : 0 };
+		}
+		variables.metricsBucket.toggles[ arguments.name ][ yesNoFormat( arguments.enabled ) ]++;
+	}
+
+	public struct function newMetricsBucket() {
+		return {
+			"start"   : getIsoTimeString( now() ),
+			"stop"    : "",
+			"toggles" : {}
+		};
+	}
+
 	private array function fetchFeatures() {
 		return variables.client.get( "/client/features" ).json().features;
 	}
@@ -172,6 +230,17 @@ component singleton accessors="true" {
 			}
 		}
 		return javacast( "null", "" );
+	}
+
+	private string function getIsoTimeString( required date datetime, boolean convertToUTC = true ) {
+		if ( arguments.convertToUTC ) {
+			arguments.datetime = dateConvert( "local2utc", arguments.datetime );
+		}
+
+		return dateFormat( arguments.datetime, "yyyy-mm-dd" ) &
+		"T" &
+		timeFormat( arguments.datetime, "HH:mm:ss" ) &
+		"Z";
 	}
 
 }
