@@ -11,11 +11,10 @@ component {
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
             "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
-            "cacheTimeout": createTimeSpan( 0, 0, 0, 10 )
+            "cacheTimeout": createTimeSpan( 0, 0, 0, 10 ),
+            "refreshInterval": 10
         };
-	}
 
-	function onLoad() {
         binder.map( "UnleashHyperClient@unleashsdk" )
             .to( "hyper.models.HyperBuilder" )
             .asSingleton()
@@ -33,6 +32,10 @@ component {
 
         binder.map( "@unleashsdk" )
             .toDSL( "UnleashSDK@unleashsdk" );
+	}
+
+	function onLoad() {
+        
 	}
 
 }
