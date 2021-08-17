@@ -12,6 +12,18 @@ This module takes heavy advantage of ColdBox's async scheduling. There are no pl
 
 ### Configuration
 
+The UnleashSDK needs some jars to be available on the classpath.  Add this to your `Application.cfc`: (Adjust the paths as necessary.)
+
+```cfc
+this.javaSettings = {
+    loadPaths = [
+        expandPath( "/modules/unleashsdk/lib" )
+    ],
+    loadColdFusionClassPath = true,
+    reloadOnChange = false
+};
+```
+
 Here are the settings for the UnleashSDK:
 
 ```cfc
