@@ -14,8 +14,8 @@ component {
                 } 
             } )
             .onSuccess( function( task, results ) {
-                if ( log.canInfo() ) {
-                    log.info( "Successfully refreshed features", results );
+                if ( log.canDebug() ) {
+                    log.debug( "Successfully refreshed features", results );
                 }
             } )
             .onFailure( function( task, exception ) {
@@ -34,8 +34,8 @@ component {
                 } 
             } )
             .onSuccess( function( task, results ) {
-                if ( log.canInfo() ) {
-                    log.info( "Successfully sent metrics to Unleash features", results );
+                if ( log.canDebug() ) {
+                    log.debug( "Successfully sent metrics to Unleash features", results );
                 }
             } )
             .onFailure( function( task, exception ) {
