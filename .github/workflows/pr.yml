@@ -35,7 +35,7 @@ jobs:
       - name: Run TestBox Tests
         run: |
           docker-compose exec -w /app/unleashsdk -T sdk box install
-          docker-compose exec -w /app/unleashsdk -T sdk box testbox run
+          docker-compose exec -w /app/unleashsdk -T sdk box testbox run runner=http://localhost:61442/tests/runner.cfm
 
   format:
     runs-on: ubuntu-latest
