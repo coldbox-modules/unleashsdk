@@ -25,7 +25,6 @@ jobs:
 
       - name: Start containers
         env:
-          BOX_INSTALL: true
           BOX_SERVER_APP_CFENGINE: ${{ matrix.cfengine }}
         run: |
           docker-compose up -d --build
@@ -35,8 +34,8 @@ jobs:
 
       - name: Run TestBox Tests
         run: |
-          docker-compose exec -T sdk box install
-          docker-compose exec -T sdk box testbox run
+          docker-compose exec -T sdk "cd /app_dir/unleashsdk && box install"
+          docker-compose exec -T sdk "cd /app_dir/unleashsdk && box testbox run"
 
   format:
     runs-on: ubuntu-latest
