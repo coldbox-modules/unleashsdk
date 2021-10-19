@@ -26,4 +26,4 @@ jobs:
           docker-compose up -d --build
 
       - name: Run TestBox Tests
-        run: docker-compose exec sdk box testbox run
+        run: docker-compose exec -T sdk box testbox run
