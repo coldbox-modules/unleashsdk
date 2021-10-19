@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Tests
     strategy:
-      fail-fast: true
       matrix:
         cfengine: ["lucee@5", "adobe@2016", "adobe@2018", "adobe@2021"]
     steps:
@@ -32,7 +31,7 @@ jobs:
           docker-compose up -d --build
           sleep 5 # this is because the unleash server tends to fail the first time for some reason
           docker-compose up -d --build
-          sleep 30 # wait for the server to start
+          sleep 120 # wait for the server to start
 
       - name: Run TestBox Tests
         run: docker-compose exec -T sdk box testbox run

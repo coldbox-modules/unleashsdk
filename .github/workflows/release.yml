@@ -26,7 +26,7 @@ jobs:
           docker-compose up -d --build
           sleep 5 # this is because the unleash server tends to fail the first time for some reason
           docker-compose up -d --build
-          sleep 30 # wait for the server to start
+          sleep 120 # wait for the server to start
 
       - name: Run TestBox Tests
         run: docker-compose exec -T sdk box testbox run
