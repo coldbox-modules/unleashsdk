@@ -12,12 +12,10 @@ component {
     rootPath = REReplaceNoCase( this.mappings[ "/tests" ], "tests(\\|/)", "" );
     this.mappings[ "/root" ] = rootPath;
     this.mappings[ "/unleashsdk" ] = rootPath;
-    this.mappings[ "/testingModuleRoot" ] = "/app_dir";
-    this.mappings[ "/app" ] = testsPath & "resources/app";
-    this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
+    this.mappings[ "/testingModuleRoot" ] = "/app";
+    this.mappings[ "/app" ] = testsPath & "resources/sample_app";
+    this.mappings[ "/coldbox" ] = testsPath & "resources/sample_app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "/testbox";
-
-    writeDump( var = this.mappings );
 
     this.javaSettings = {
 		loadPaths = [
