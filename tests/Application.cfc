@@ -5,16 +5,19 @@ component {
     this.setClientCookies   = true;
     this.sessionTimeout     = createTimeSpan( 0, 0, 15, 0 );
     this.applicationTimeout = createTimeSpan( 0, 0, 15, 0 );
+    this.bufferoutput = true;
 
     testsPath = getDirectoryFromPath( getCurrentTemplatePath() );
     this.mappings[ "/tests" ] = testsPath;
     rootPath = REReplaceNoCase( this.mappings[ "/tests" ], "tests(\\|/)", "" );
     this.mappings[ "/root" ] = rootPath;
     this.mappings[ "/unleashsdk" ] = rootPath;
-    this.mappings[ "/testingModuleRoot" ] = "/app";
+    this.mappings[ "/testingModuleRoot" ] = "/app_dir";
     this.mappings[ "/app" ] = testsPath & "resources/app";
     this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "/testbox";
+
+    writeDump( var = this.mappings );
 
     this.javaSettings = {
 		loadPaths = [

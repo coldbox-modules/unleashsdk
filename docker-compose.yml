@@ -9,15 +9,17 @@ services:
         expose:
             - "61442"
         environment:
-            APP_DIR: /app/unleashsdk
+            APP_DIR: /app_dir/unleashsdk
             PORT: 61442
             BOX_SERVER_PROFILE: development
             UNLEASH_API_URL: http://unleash:4242/api
         volumes:
-            - .:/app/unleashsdk
+            - .:/app_dir/unleashsdk
 
     unleash:
         image: unleashorg/unleash-server:4.0.10
+        depends_on:
+            - db
         ports:
             - "4242:4242"
         expose:
@@ -25,8 +27,6 @@ services:
         environment:
             DATABASE_URL: "postgres://postgres:unleash@db/postgres"
             DATABASE_SSL: "false"
-        depends_on:
-            - db
         healthcheck:
             test: ["CMD", "nc",  "-z", "db", "5432"]
             interval: 1s
