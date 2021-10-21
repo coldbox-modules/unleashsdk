@@ -28,12 +28,13 @@ jobs:
           BOX_SERVER_APP_CFENGINE: ${{ matrix.cfengine }}
         run: |
           docker-compose up -d --build
-          sleep 5 # this is because the unleash server tends to fail the first time for some reason
+          sleep 30 # this is because the unleash server tends to fail the first time for some reason
           docker-compose up -d --build
           sleep 120 # wait for the server to start
 
       - name: Run TestBox Tests
         run: |
+          docker-compose ps
           docker-compose exec -w /app/unleashsdk -T sdk box install
           docker-compose exec -w /app/unleashsdk -T sdk box testbox run runner=http://localhost:61442/tests/runner.cfm
 

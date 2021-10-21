@@ -23,6 +23,22 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 				expect( result ).toBeTrue();
 			} );
 
+			it( "returns true when matching a comma separated list", function() {
+				var result = variables.strategy.isEnabled(
+					parameters = { "remoteAddress" : "1.1.1.1, 2.2.2.2" },
+					context    = getTestContext( { "remoteAddress" : "2.2.2.2" } )
+				);
+				expect( result ).toBeTrue();
+			} );
+
+			it( "matches any remote address in context", function() {
+				var result = variables.strategy.isEnabled(
+					parameters = { "remoteAddress" : "1.1.1.1,2.2.2.2" },
+					context    = getTestContext( { "remoteAddress" : "3.3.3.3,2.2.2.2" } )
+				);
+				expect( result ).toBeTrue();
+			} );
+
 			it( "returns false when not matching a remote address", function() {
 				var result = variables.strategy.isEnabled(
 					parameters = { "remoteAddress" : "1.1.1.1,2.2.2.2" },
