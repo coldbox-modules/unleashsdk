@@ -9,22 +9,12 @@ jobs:
   docbox:
     name: Generate API Docs
     runs-on: ubuntu-latest
+    container: ghcr.io/foundeo/cfml-ci-tools/cfml-ci-tools:1.0.6
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Setup Java JDK
-        uses: actions/setup-java@v1.4.3
-        with:
-          java-version: 11
-          
-      - name: Setup CommandBox
-        uses: Ortus-Solutions/setup-commandbox@v1.0.0
 
       - name: Generate API Docs
         run: box run-script generateAPIDocs
