@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/foundeo/cfml-ci-tools/cfml-ci-tools:1.0.6
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Generate API Docs
         run: box run-script generateAPIDocs
 
