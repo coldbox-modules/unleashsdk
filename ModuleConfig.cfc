@@ -10,7 +10,7 @@ component {
 		settings = {
             "appName": getApplicationName(),
             "instanceId": resolveHostname(),
-            "environment": variables.controller.getSetting( "environment" ),
+            "environment": wirebox.getInstance( "box:setting:environment", getSystemSetting( "ENVIRONMENT", "production" ) ),
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
             "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),

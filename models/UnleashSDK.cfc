@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
-	property name="settings" inject="coldbox:moduleSettings:unleashsdk";
-	property name="config"   inject="coldbox:moduleConfig:unleashsdk";
+	property name="settings" inject="box:moduleSettings:unleashsdk";
+	property name="config"   inject="box:moduleConfig:unleashsdk";
 	property name="client"   inject="UnleashHyperClient@unleashsdk";
 	property name="log"      inject="logbox:logger:{this}";
 	property name="cache"    inject="cachebox:default";
