@@ -1,11 +1,13 @@
 component singleton accessors="true" {
 
-	property name="settings" inject="coldbox:moduleSettings:unleashsdk";
-	property name="config"   inject="coldbox:moduleConfig:unleashsdk";
+	property name="settings" inject="box:moduleSettings:unleashsdk";
+	property name="config"   inject="box:moduleConfig:unleashsdk";
 	property name="client"   inject="UnleashHyperClient@unleashsdk";
 	property name="log"      inject="logbox:logger:{this}";
 	property name="cache"    inject="cachebox:default";
 	property name="wirebox"  inject="wirebox";
+
+	property name="isRegistered" default="false";
 
 	variables.strategies = {
 		"default"             : "DefaultStrategy@unleashsdk",
@@ -20,6 +22,13 @@ component singleton accessors="true" {
 	}
 
 	function register() {
+		if ( variables.isRegistered ) {
+			if ( variables.log.canInfo() ) {
+				variables.log.info( "UnleashSDK was asked to register, but it is already registered" );
+			}
+			return;
+		}
+
 		var registrationInfo = {
 			"appName"    : variables.settings.appName,
 			"instanceId" : variables.settings.instanceId,
@@ -32,6 +41,7 @@ component singleton accessors="true" {
 			log.info( "Registering instance with Unleash", registrationInfo );
 		}
 		variables.client.post( "/client/register", registrationInfo );
+		variables.isRegistered = true;
 	}
 
 	public boolean function isEnabled(
