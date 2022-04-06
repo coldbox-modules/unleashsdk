@@ -10,7 +10,7 @@ component {
 		settings = {
             "appName": getApplicationName(),
             "instanceId": resolveHostname(),
-            "environment": wirebox.getInstance( "box:setting:environment", getSystemSetting( "ENVIRONMENT", "production" ) ),
+            "environment": resolveEnvironment(),
             "contextProvider": "DefaultContextProvider@unleashsdk",
             "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
             "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
@@ -50,7 +50,7 @@ component {
 	}
 
     private string function resolveHostname() {
-		var hostname = createObject( "java", "java.lang.System" ).getProperty( "hostname" );
+		var hostname = javaSystem().getProperty( "hostname" );
 		if ( isNull( hostname ) ) {
 			try {
 				hostname = createObject( "java", "java.net.InetAddress" ).getLocalHost().getHostName();
@@ -60,5 +60,37 @@ component {
 		}
 		return hostname;
 	}
+
+    private string function resolveEnvironment() {
+        var configSettings = wirebox.getInstance( "box:configSettings" );
+
+        if (
+            structKeyExists( configSettings, "ENVIRONMENT" ) &&
+            !isNull( configSettings.environment ) &&
+            isSimpleValue( configSettings.environment ) &&
+            configSettings.environment != ""
+        ) {
+            return configSettings.environment;
+        }
+
+        var envEnvironment = javaSystem().getEnv( "ENVIRONMENT" );
+
+        if ( !isNull( envEnvironment ) && envEnvironment != "" ) {
+            return envEnvironment;
+        }
+
+        var propsEnvironment = javaSystem().getProperty( "ENVIRONMENT" );
+
+        if ( !isNull( propsEnvironment ) && propsEnvironment != "" ) {
+            return propsEnvironment;
+        }
+
+        return "production";
+    }
+
+    private any function javaSystem() {
+        param variables._javaSystem = createObject( "java", "java.lang.System" );
+        return variables._javaSystem;
+    }
 
 }
