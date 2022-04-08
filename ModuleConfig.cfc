@@ -4,7 +4,6 @@ component {
 	this.author = "Eric Peterson";
 	this.webUrl = "https://github.com/coldbox-modules/unleashsdk";
 	this.dependencies = [ "hyper" ];
-    this.version = "0.1.0";
 
 	function configure() {
 		settings = {
@@ -24,21 +23,22 @@ component {
 
         binder.map( "@unleashsdk" )
             .toDSL( "UnleashSDK@unleashsdk" );
-	}
 
-	function onLoad() {
         binder.map( "UnleashHyperClient@unleashsdk" )
             .to( "hyper.models.HyperBuilder" )
             .asSingleton()
-            .initWith(
-                baseUrl = settings.apiURL,
-                bodyFormat = "json",
-                headers = {
-                    "Authorization": settings.apiToken,
+            .initArg( name = "baseUrl", dsl = "box:setting:apiURL@unleashsdk" )
+            .initArg( name = "bodyFormat", value = "json" )
+            .withInfluence( function( injector, instance ) {
+                instance.defaults.withHeaders( {
+                    "Authorization": wirebox.getInstance( "box:setting:apiToken@unleashsdk" ),
                     "Content-Type": "application/json"
-                }
-            );
+                } )
+                return instance;
+            } );
+	}
 
+	function onLoad() {
         if ( settings.autoRegister ) {
             wirebox.getInstance( "UnleashSDK@unleashsdk" ).register();
         }
