@@ -26,6 +26,7 @@ component singleton accessors="true" {
 			if ( variables.log.canInfo() ) {
 				variables.log.info( "UnleashSDK was asked to register, but it is already registered" );
 			}
+			refreshFeatures();
 			return this;
 		}
 
@@ -42,6 +43,7 @@ component singleton accessors="true" {
 		}
 		variables.client.post( "/client/register", registrationInfo );
 		variables.isRegistered = true;
+		refreshFeatures();
 		return this;
 	}
 
