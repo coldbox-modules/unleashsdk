@@ -1,7 +1,7 @@
 component {
 
-    property name="refreshInterval" inject="coldbox:setting:refreshInterval@unleashsdk";
-    property name="metricsInterval" inject="coldbox:setting:metricsInterval@unleashsdk";
+    property name="refreshInterval" inject="box:setting:refreshInterval@unleashsdk";
+    property name="metricsInterval" inject="box:setting:metricsInterval@unleashsdk";
     property name="unleash" inject="provider:UnleashSDK@unleashsdk";
     property name="log" inject="logbox:logger:{this}";
 
