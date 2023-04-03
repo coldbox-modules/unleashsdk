@@ -21,7 +21,7 @@
     },
     "type":"modules",
     "dependencies":{
-        "hyper":"^3.1.0"
+        "hyper":"^5.0.0"
     },
     "devDependencies":{
         "testbox":"^4",
