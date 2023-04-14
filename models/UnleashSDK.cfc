@@ -8,6 +8,7 @@ component singleton accessors="true" {
 	property name="wirebox"  inject="wirebox";
 
 	property name="isRegistered" default="false";
+	property name="isOffline"    default="false";
 
 	variables.strategies = {
 		"default"             : "DefaultStrategy@unleashsdk",
@@ -22,9 +23,17 @@ component singleton accessors="true" {
 	}
 
 	public UnleashSDK function register() {
+		if ( variables.settings.apiToken == "" ) {
+			variables.isOffline = true;
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was asked to register, but no API token was provided." );
+			}
+			return this;
+		}
+
 		if ( variables.isRegistered ) {
 			if ( variables.log.canInfo() ) {
-				variables.log.info( "UnleashSDK was asked to register, but it is already registered" );
+				variables.log.info( "UnleashSDK was asked to register, but it is already registered." );
 			}
 			refreshFeatures();
 			return this;
@@ -125,6 +134,13 @@ component singleton accessors="true" {
 		boolean enabled  = true,
 		array strategies = []
 	) {
+		if ( variables.isOffline ) {
+			throw(
+				type = "UnleashSDK.Offline",
+				message = "UnleashSDK was not provided with an API token. Features cannot be created."
+			);
+		}
+
 		return variables.client
 			.throwErrors()
 			.post(
@@ -175,6 +191,17 @@ component singleton accessors="true" {
 	}
 
 	public struct function sendMetrics() {
+		if ( variables.isOffline ) {
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was not provided with an API token. No metrics will be sent." );
+			}
+			return {
+				"appName"    : variables.settings.appName,
+				"instanceId" : variables.settings.instanceId,
+				"bucket"     : structCopy( variables.metricsBucket )
+			};
+		}
+
 		var bucketToSend        = variables.metricsBucket;
 		variables.metricsBucket = newMetricsBucket();
 		bucketToSend.stop       = getIsoTimeString( now() );
@@ -203,6 +230,13 @@ component singleton accessors="true" {
 	}
 
 	private array function fetchFeatures() {
+		if ( variables.isOffline ) {
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was not provided with an API token. No features will be fetched." );
+			}
+			return [];
+		}
+
 		return variables.client.get( "/client/features" ).json().features;
 	}
 

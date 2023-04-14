@@ -7,6 +7,7 @@ component {
 
     function configure() {
         task( "unleashsdk-refresh-features" )
+			.when( () => !variables.unleash.isOffline() )
             .call( () => variables.unleash.refreshFeatures() )
             .delay( variables.refreshInterval, "seconds" )
             .every( variables.refreshInterval, "seconds" )
@@ -27,6 +28,7 @@ component {
             } );
 
         task( "unleashsdk-send-metrics" )
+			.when( () => !variables.unleash.isOffline() )
             .call( () => variables.unleash.sendMetrics() )
             .every( variables.metricsInterval, "seconds" )
             .delay( variables.metricsInterval, "seconds" )
