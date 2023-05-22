@@ -8,7 +8,7 @@ component singleton accessors="true" {
 	property name="wirebox"  inject="wirebox";
 
 	property name="isRegistered" default="false";
-	property name="isOffline"    default="false";
+	property name="_isOffline"    default="false";
 
 	variables.strategies = {
 		"default"             : "DefaultStrategy@unleashsdk",
@@ -24,7 +24,7 @@ component singleton accessors="true" {
 
 	public UnleashSDK function register() {
 		if ( variables.settings.apiToken == "" ) {
-			variables.isOffline = true;
+			variables._isOffline = true;
 			if ( variables.log.canWarn() ) {
 				variables.log.warn( "UnleashSDK was asked to register, but no API token was provided." );
 			}
@@ -114,6 +114,10 @@ component singleton accessors="true" {
 		return !isEnabled( argumentCollection = arguments );
 	}
 
+	public boolean function isOffline() {
+		return variables._isOffline;
+	}
+
 	private any function getStrategy( required string name ) {
 		if ( !variables.strategies.keyExists( arguments.name ) ) {
 			log.warn( "No Unleash strategy found for [#arguments.name#]" );
@@ -134,7 +138,7 @@ component singleton accessors="true" {
 		boolean enabled  = true,
 		array strategies = []
 	) {
-		if ( variables.isOffline ) {
+		if ( variables._isOffline ) {
 			throw(
 				type = "UnleashSDK.Offline",
 				message = "UnleashSDK was not provided with an API token. Features cannot be created."
@@ -191,7 +195,7 @@ component singleton accessors="true" {
 	}
 
 	public struct function sendMetrics() {
-		if ( variables.isOffline ) {
+		if ( variables._isOffline ) {
 			if ( variables.log.canWarn() ) {
 				variables.log.warn( "UnleashSDK was not provided with an API token. No metrics will be sent." );
 			}
@@ -230,7 +234,7 @@ component singleton accessors="true" {
 	}
 
 	private array function fetchFeatures() {
-		if ( variables.isOffline ) {
+		if ( variables._isOffline ) {
 			if ( variables.log.canWarn() ) {
 				variables.log.warn( "UnleashSDK was not provided with an API token. No features will be fetched." );
 			}
