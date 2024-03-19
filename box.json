@@ -21,11 +21,11 @@
     },
     "type":"modules",
     "dependencies":{
-        "hyper":"^5.0.0"
+        "hyper":"^7.5.0"
     },
     "devDependencies":{
-        "testbox":"^4",
-        "coldbox":"^6"
+        "testbox":"^5.0.0",
+        "coldbox":"^7.0.0"
     },
     "installPaths":{
         "testbox":"testbox/",
