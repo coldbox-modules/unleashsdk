@@ -1,11 +1,14 @@
 component singleton accessors="true" {
 
-	property name="settings" inject="coldbox:moduleSettings:unleashsdk";
-	property name="config"   inject="coldbox:moduleConfig:unleashsdk";
+	property name="settings" inject="box:moduleSettings:unleashsdk";
+	property name="config"   inject="box:moduleConfig:unleashsdk";
 	property name="client"   inject="UnleashHyperClient@unleashsdk";
 	property name="log"      inject="logbox:logger:{this}";
 	property name="cache"    inject="cachebox:default";
 	property name="wirebox"  inject="wirebox";
+
+	property name="isRegistered" default="false";
+	property name="_isOffline"    default="false";
 
 	variables.strategies = {
 		"default"             : "DefaultStrategy@unleashsdk",
@@ -19,7 +22,23 @@ component singleton accessors="true" {
 		variables.metricsBucket = newMetricsBucket();
 	}
 
-	function register() {
+	public UnleashSDK function register() {
+		if ( variables.settings.apiToken == "" ) {
+			variables._isOffline = true;
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was asked to register, but no API token was provided." );
+			}
+			return this;
+		}
+
+		if ( variables.isRegistered ) {
+			if ( variables.log.canInfo() ) {
+				variables.log.info( "UnleashSDK was asked to register, but it is already registered." );
+			}
+			refreshFeatures();
+			return this;
+		}
+
 		var registrationInfo = {
 			"appName"    : variables.settings.appName,
 			"instanceId" : variables.settings.instanceId,
@@ -32,6 +51,9 @@ component singleton accessors="true" {
 			log.info( "Registering instance with Unleash", registrationInfo );
 		}
 		variables.client.post( "/client/register", registrationInfo );
+		variables.isRegistered = true;
+		refreshFeatures();
+		return this;
 	}
 
 	public boolean function isEnabled(
@@ -92,6 +114,10 @@ component singleton accessors="true" {
 		return !isEnabled( argumentCollection = arguments );
 	}
 
+	public boolean function isOffline() {
+		return variables._isOffline;
+	}
+
 	private any function getStrategy( required string name ) {
 		if ( !variables.strategies.keyExists( arguments.name ) ) {
 			log.warn( "No Unleash strategy found for [#arguments.name#]" );
@@ -112,6 +138,13 @@ component singleton accessors="true" {
 		boolean enabled  = true,
 		array strategies = []
 	) {
+		if ( variables._isOffline ) {
+			throw(
+				type = "UnleashSDK.Offline",
+				message = "UnleashSDK was not provided with an API token. Features cannot be created."
+			);
+		}
+
 		return variables.client
 			.throwErrors()
 			.post(
@@ -162,6 +195,17 @@ component singleton accessors="true" {
 	}
 
 	public struct function sendMetrics() {
+		if ( variables._isOffline ) {
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was not provided with an API token. No metrics will be sent." );
+			}
+			return {
+				"appName"    : variables.settings.appName,
+				"instanceId" : variables.settings.instanceId,
+				"bucket"     : structCopy( variables.metricsBucket )
+			};
+		}
+
 		var bucketToSend        = variables.metricsBucket;
 		variables.metricsBucket = newMetricsBucket();
 		bucketToSend.stop       = getIsoTimeString( now() );
@@ -190,6 +234,13 @@ component singleton accessors="true" {
 	}
 
 	private array function fetchFeatures() {
+		if ( variables._isOffline ) {
+			if ( variables.log.canWarn() ) {
+				variables.log.warn( "UnleashSDK was not provided with an API token. No features will be fetched." );
+			}
+			return [];
+		}
+
 		return variables.client.get( "/client/features" ).json().features;
 	}
 

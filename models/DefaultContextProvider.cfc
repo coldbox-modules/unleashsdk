@@ -1,7 +1,7 @@
 component {
 
 	property name="javaInetAddress" inject="java:java.net.InetAddress";
-	property name="environment"     inject="coldbox:setting:environment";
+	property name="environment"     inject="box:setting:environment@unleashsdk";
 	property name="javaSystem"      inject="java:java.lang.System";
 
 	public struct function getContext() {

@@ -1,6 +1,6 @@
 {
     "name":"unleashsdk",
-    "version":"1.0.2",
+    "version":"2.1.1",
     "author":"Ortus Solutions",
     "location":"forgeboxStorage",
     "homepage":"https://github.com/coldbox-modules/unleashsdk",
@@ -21,11 +21,11 @@
     },
     "type":"modules",
     "dependencies":{
-        "hyper":"^3.1.0"
+        "hyper":"^7.5.0"
     },
     "devDependencies":{
-        "testbox":"^4",
-        "coldbox":"^6"
+        "testbox":"^5.0.0",
+        "coldbox":"^7.0.0"
     },
     "installPaths":{
         "testbox":"testbox/",

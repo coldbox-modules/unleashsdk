@@ -4,42 +4,65 @@ component {
 	this.author = "Eric Peterson";
 	this.webUrl = "https://github.com/coldbox-modules/unleashsdk";
 	this.dependencies = [ "hyper" ];
-    this.version = "0.1.0";
 
 	function configure() {
 		settings = {
             "appName": getApplicationName(),
             "instanceId": resolveHostname(),
-            "environment": variables.controller.getSetting( "environment" ),
+            "environment": resolveEnvironment(),
             "contextProvider": "DefaultContextProvider@unleashsdk",
-            "apiURL": getSystemSetting( "UNLEASH_API_URL" ),
-            "apiToken": getSystemSetting( "UNLEASH_API_TOKEN" ),
+            "apiURL": resolveSystemSetting( "UNLEASH_API_URL", "" ),
+            "apiToken": resolveSystemSetting( "UNLEASH_API_TOKEN", "" ),
             "refreshInterval": 10,
-            "metricsInterval": 60
+            "metricsInterval": 60,
+            "autoRegister": true
         };
-
-        binder.map( "UnleashHyperClient@unleashsdk" )
-            .to( "hyper.models.HyperBuilder" )
-            .asSingleton()
-            .initWith(
-                baseUrl = settings.apiURL,
-                bodyFormat = "json",
-                headers = {
-                    "Authorization": settings.apiToken,
-                    "Content-Type": "application/json"
-                }
-            );
 
         binder.map( "UnleashSDK@unleashsdk" )
             .to( "#moduleMapping#.models.UnleashSDK" );
 
         binder.map( "@unleashsdk" )
             .toDSL( "UnleashSDK@unleashsdk" );
+
+        binder.map( "UnleashHyperClient@unleashsdk" )
+            .to( "hyper.models.HyperBuilder" )
+            .asSingleton()
+            .initArg( name = "baseUrl", dsl = "box:setting:apiURL@unleashsdk" )
+            .initArg( name = "bodyFormat", value = "json" )
+            .withInfluence( function( injector, instance ) {
+                instance.defaults.withHeaders( {
+                    "Authorization": wirebox.getInstance( "box:setting:apiToken@unleashsdk" ),
+                    "Content-Type": "application/json"
+                } )
+                return instance;
+            } );
 	}
 
 	function onLoad() {
-        wirebox.getInstance( "UnleashSDK@unleashsdk" ).register();
+        if ( settings.autoRegister ) {
+            wirebox.getInstance( "UnleashSDK@unleashsdk" ).register();
+        }
 	}
+
+    private string function resolveSystemSetting( required string name, any defaultValue ) {
+        var envValue = javaSystem().getEnv( arguments.name );
+
+        if ( !isNull( envValue ) && envValue != "" ) {
+            return envValue;
+        }
+
+        var propsValue = javaSystem().getProperty( arguments.name );
+
+        if ( !isNull( propsValue ) && propsValue != "" ) {
+            return propsValue;
+        }
+
+        if ( !isNull( arguments.defaultValue ) ) {
+            return arguments.defaultValue;
+        }
+
+        throw( "No env or system prop set for [#arguments.name#]" );
+    }
 
     private string function getApplicationName() {
 		try {
@@ -50,7 +73,7 @@ component {
 	}
 
     private string function resolveHostname() {
-		var hostname = createObject( "java", "java.lang.System" ).getProperty( "hostname" );
+		var hostname = javaSystem().getProperty( "hostname" );
 		if ( isNull( hostname ) ) {
 			try {
 				hostname = createObject( "java", "java.net.InetAddress" ).getLocalHost().getHostName();
@@ -60,5 +83,37 @@ component {
 		}
 		return hostname;
 	}
+
+    private string function resolveEnvironment() {
+        var configSettings = wirebox.getInstance( "box:configSettings" );
+
+        if (
+            structKeyExists( configSettings, "ENVIRONMENT" ) &&
+            !isNull( configSettings.environment ) &&
+            isSimpleValue( configSettings.environment ) &&
+            configSettings.environment != ""
+        ) {
+            return configSettings.environment;
+        }
+
+        var envEnvironment = javaSystem().getEnv( "ENVIRONMENT" );
+
+        if ( !isNull( envEnvironment ) && envEnvironment != "" ) {
+            return envEnvironment;
+        }
+
+        var propsEnvironment = javaSystem().getProperty( "ENVIRONMENT" );
+
+        if ( !isNull( propsEnvironment ) && propsEnvironment != "" ) {
+            return propsEnvironment;
+        }
+
+        return "production";
+    }
+
+    private any function javaSystem() {
+        param variables._javaSystem = createObject( "java", "java.lang.System" );
+        return variables._javaSystem;
+    }
 
 }

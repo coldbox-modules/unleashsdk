@@ -1,17 +1,20 @@
 component {
 
-    property name="refreshInterval" inject="coldbox:setting:refreshInterval@unleashsdk";
-    property name="metricsInterval" inject="coldbox:setting:metricsInterval@unleashsdk";
+    property name="refreshInterval" inject="box:setting:refreshInterval@unleashsdk";
+    property name="metricsInterval" inject="box:setting:metricsInterval@unleashsdk";
+    property name="unleash" inject="provider:UnleashSDK@unleashsdk";
     property name="log" inject="logbox:logger:{this}";
 
     function configure() {
         task( "unleashsdk-refresh-features" )
-            .call( getInstance( "UnleashSDK@unleashsdk" ), "refreshFeatures" )
+			.when( () => !variables.unleash.isOffline() )
+            .call( () => variables.unleash.refreshFeatures() )
+            .delay( variables.refreshInterval, "seconds" )
             .every( variables.refreshInterval, "seconds" )
             .before( function() {
                 if ( log.canDebug() ) {
                     log.debug( "Starting to fetch new features from Unleash" );
-                } 
+                }
             } )
             .onSuccess( function( task, results ) {
                 if ( log.canDebug() ) {
@@ -25,13 +28,14 @@ component {
             } );
 
         task( "unleashsdk-send-metrics" )
-            .call( getInstance( "UnleashSDK@unleashsdk" ), "sendMetrics" )
+			.when( () => !variables.unleash.isOffline() )
+            .call( () => variables.unleash.sendMetrics() )
             .every( variables.metricsInterval, "seconds" )
             .delay( variables.metricsInterval, "seconds" )
             .before( function() {
                 if ( log.canDebug() ) {
                     log.debug( "Starting to send metrics to Unleash" );
-                } 
+                }
             } )
             .onSuccess( function( task, results ) {
                 if ( log.canDebug() ) {
