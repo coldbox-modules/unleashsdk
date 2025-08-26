@@ -20,6 +20,14 @@ component singleton accessors="true" {
 
 	function onDIComplete() {
 		variables.metricsBucket = newMetricsBucket();
+		variables.client.withResponseCallback( ( res ) => {
+			if ( res.isError() ) {
+				if ( variables.log.canError() ) {
+					variables.log.error( "UnleashSDK encountered an error in its HTTP client. Setting to offline mode.", res.getData() );
+				}
+				variables._isOffline = true;
+			}
+		} );
 	}
 
 	public UnleashSDK function register() {
@@ -241,7 +249,40 @@ component singleton accessors="true" {
 			return [];
 		}
 
-		return variables.client.get( "/client/features" ).json().features;
+		var res = variables.client.get( "/client/features" );
+		if ( res.isError() ) {
+			if ( variables.log.canError() ) {
+				variables.log.error( "UnleashSDK encountered an error fetching features", res.getData() );
+			}
+			return [];
+		}
+
+		var data = {};
+
+		try {
+			data = res.json();
+		} catch ( DeserializeJsonException e ) {
+			if ( variables.log.canError() ) {
+				variables.log.error( "UnleashSDK encountered an error fetching features: response was not JSON", res.getData() );
+			}
+			return [];
+		}
+
+		if ( !isStruct( data ) ) {
+			if ( variables.log.canError() ) {
+				variables.log.error( "UnleashSDK encountered an error fetching features: response was not a JSON object", res.getData() );
+			}
+			return [];
+		}
+
+		if ( !data.keyExists( "features" ) ) {
+			if ( variables.log.canError() ) {
+				variables.log.error( "UnleashSDK encountered an error fetching features: response did not contain 'features' key", res.getData() );
+			}
+			return [];
+		}
+
+		return data.features;
 	}
 
 	private boolean function satisfiesConstraints( required array constraints, required struct context ) {
