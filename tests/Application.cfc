@@ -35,7 +35,19 @@ component {
     function fetchAndSetAPIToken() {
         logInToUnleash();
         var token = fetchAPIToken();
-        getJavaSystem().setProperty( "UNLEASH_API_TOKEN", token );
+        // Unleash 4 refreshes its active API token cache once per minute.
+        var deadline = getTickCount() + 70000;
+        while ( getTickCount() < deadline ) {
+            cfhttp( result="local.tokenCheck", method="GET", url="#getSystemSetting( "UNLEASH_API_URL" )#/admin/features", timeout="5" ) {
+                cfhttpparam( type="header", name="Authorization", value=token );
+            }
+            if ( val( local.tokenCheck.statusCode ) == 200 ) {
+                getJavaSystem().setProperty( "UNLEASH_API_TOKEN", token );
+                return;
+            }
+            sleep( 1000 );
+        }
+        throw( "The Unleash test API token was not accepted within 70 seconds." );
     }
 
     function logInToUnleash() {
