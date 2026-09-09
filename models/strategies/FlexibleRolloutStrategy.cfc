@@ -1,4 +1,4 @@
-component implements="IStrategy" singleton {
+component implements="IStrategy" singleton threadSafe {
 
 	property name="murmur3" inject="java:com.sangupta.murmur.Murmur3";
 
