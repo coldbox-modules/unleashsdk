@@ -97,7 +97,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 
 			it( "reads cached features without making HTTP requests", function() {
 				var features = unleash.refreshFeatures();
-				var client = unleash.getClient();
+				var originalClient = unleash.getClient();
 				var unavailableClient = createStub().$( method = "get", callback = function() {
 					throw( "Cached feature reads must not make HTTP requests." );
 				} );
@@ -106,7 +106,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 					expect( unleash.getFeatures() ).toBe( features );
 					expect( unleash.getFeatures() ).toBe( features );
 				} finally {
-					unleash.setClient( client );
+					unleash.setClient( originalClient );
 				}
 			} );
 
@@ -120,7 +120,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 
 			it( "keeps cached features when a refresh throws", function() {
 				var features = unleash.refreshFeatures();
-				var client = unleash.getClient();
+				var originalClient = unleash.getClient();
 				var unavailableClient = createStub().$( method = "get", callback = function() {
 					throw( type = "UnleashTest.Unavailable", message = "Test connection failure" );
 				} );
@@ -131,7 +131,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 					} ).toThrow( "UnleashTest.Unavailable" );
 					expect( unleash.getFeatures() ).toBe( features );
 				} finally {
-					unleash.setClient( client );
+					unleash.setClient( originalClient );
 				}
 			} );
 		} );
