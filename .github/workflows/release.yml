@@ -16,17 +16,21 @@ jobs:
       matrix:
         cfengine: ["lucee@5", "lucee@6", "adobe@2021", "adobe@2023"]
         coldbox: ["coldbox@5", "coldbox@6"]
+    env:
+      UNLEASH_API_URL: http://127.0.0.1:4242/api
     services:
-      mysql:
-        image: mysql:5.7
+      postgres:
+        image: postgres:10-alpine
         env:
-          MYSQL_RANDOM_ROOT_PASSWORD: yes
-          MYSQL_USER: quick
-          MYSQL_PASSWORD: quick
-          MYSQL_DATABASE: quick
+          POSTGRES_PASSWORD: unleash
+        options: --health-cmd="pg_isready -U postgres" --health-interval=2s --health-timeout=5s --health-retries=30
+      unleash:
+        image: unleashorg/unleash-server:4.0.10
+        env:
+          DATABASE_URL: postgres://postgres:unleash@postgres/postgres
+          DATABASE_SSL: "false"
         ports:
-          - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+          - 4242:4242
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -45,22 +49,20 @@ jobs:
           box config set modules.commandbox-dotenv.checkEnvPreServerStart=false
           box install ${{ matrix.coldbox }} --noSave
 
+      - name: Wait for Unleash
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:4242/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
       - name: Start server
-        env:
-          DB_HOST: localhost
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          DB_NAME: quick
-          DB_USER: quick
-          DB_PASSWORD: quick
         run: box server start cfengine=${{ matrix.cfengine }}
 
       - name: Run TestBox Tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          DB_NAME: quick
-          DB_USER: quick
-          DB_PASSWORD: quick
         run: box testbox run
 
   release:

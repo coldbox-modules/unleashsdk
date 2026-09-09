@@ -11,7 +11,7 @@ component {
     rootPath = REReplaceNoCase( this.mappings[ "/tests" ], "tests(\\|/)", "" );
     this.mappings[ "/root" ] = rootPath;
     this.mappings[ "/unleashsdk" ] = rootPath;
-    this.mappings[ "/testingModuleRoot" ] = "/app";
+    this.mappings[ "/testingModuleRoot" ] = rootPath & "../";
     this.mappings[ "/app" ] = testsPath & "resources/app";
     this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "/testbox";
