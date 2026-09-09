@@ -40,6 +40,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 					]
 				);
 
+				unleash.refreshFeatures();
 				expect( unleash.isEnabled( "feature-1" ) ).toBeTrue();
 				expect( unleash.isEnabled( "feature-2" ) ).toBeFalse();
 			} );
@@ -71,6 +72,7 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 					]
 				);
 
+				unleash.refreshFeatures();
 				expect( unleash.isDisabled( "feature-1" ) ).toBeFalse();
 				expect( unleash.isDisabled( "feature-2" ) ).toBeTrue();
 			} );
@@ -88,61 +90,49 @@ component extends="tests.resources.ModuleIntegrationSpec" {
 						}
 					]
 				);
+				unleash.refreshFeatures();
 				expect( unleash.getFeatures() ).toBeArray();
 				expect( unleash.getFeatures() ).notToBeEmpty();
 			} );
 
-			it( "caches the features", function() {
-				cache.clear( "unleashsdk-features" );
-				var hyper      = prepareMock( getInstance( "UnleashHyperClient@unleashsdk" ) );
-				var newRequest = hyper.new();
-				hyper.$( "new", newRequest );
-				unleash.getFeatures();
-				unleash.getFeatures();
-				expect( hyper.$count( "new" ) ).toBe( 1, "The UnleashHyperClient should only be used once." );
+			it( "reads cached features without making HTTP requests", function() {
+				var features = unleash.refreshFeatures();
+				var client = unleash.getClient();
+				var unavailableClient = createStub().$( method = "get", callback = function() {
+					throw( "Cached feature reads must not make HTTP requests." );
+				} );
+				unleash.setClient( unavailableClient );
+				try {
+					expect( unleash.getFeatures() ).toBe( features );
+					expect( unleash.getFeatures() ).toBe( features );
+				} finally {
+					unleash.setClient( client );
+				}
 			} );
 
-			it( "stores a failover cache", function() {
-				cache.clear( "unleashsdk-features" );
+			it( "stores refreshed features in the failover cache", function() {
 				cache.clear( "unleashsdk-failover" );
-				expect( cache.get( "unleashsdk-failover" ) ).toBeNull();
-				var features = unleash.getFeatures();
-				expect( cache.get( "unleashsdk-failover" ) ).notToBeNull().toBe( features );
+				expect( unleash.getFeatures() ).toBeEmpty();
+				var features = unleash.refreshFeatures();
+				expect( features ).notToBeEmpty();
+				expect( cache.get( "unleashsdk-failover" ) ).toBe( features );
 			} );
 
-			it( "uses the failover cache if there are any issues retrieving the features", function() {
-				cache.clear( "unleashsdk-features" );
-				cache.clear( "unleashsdk-failover" );
-				unleash.getFeatures();
-				var fallbackFeatures = cache.get( "unleashsdk-failover" );
-				expect( fallbackFeatures ).notToBeNull();
-
-				cache.clear( "unleashsdk-features" );
-				var hyper = prepareMock( getInstance( "UnleashHyperClient@unleashsdk" ) );
-				hyper.$(
-					method   = "new",
-					callback = function() {
-						throw( "Something went wrong with the HTTP request to Unleash for the test!" );
-					}
-				);
-
-				var features = unleash.getFeatures();
-				expect( features ).toBe( fallbackFeatures );
-			} );
-
-			// this test currently doesn't work with CacheBox's default settings
-			// because it only reaps the cache every 5 minutes
-			// and it doesn't clear timed out items on a `get`.
-			xit( "caches the features within a timeout", function() {
-				cache.clear( "unleashsdk-features" );
-				var hyper      = prepareMock( getInstance( "UnleashHyperClient@unleashsdk" ) );
-				var newRequest = hyper.new();
-				hyper.$( "new", newRequest );
-				unleash.getFeatures();
-				unleash.getFeatures();
-				sleep( 5 * 1000 ); // default timeout is 11 seconds
-				unleash.getFeatures();
-				expect( hyper.$count( "new" ) ).toBe( 2, "The UnleashHyperClient should be used twice." );
+			it( "keeps cached features when a refresh throws", function() {
+				var features = unleash.refreshFeatures();
+				var client = unleash.getClient();
+				var unavailableClient = createStub().$( method = "get", callback = function() {
+					throw( type = "UnleashTest.Unavailable", message = "Test connection failure" );
+				} );
+				unleash.setClient( unavailableClient );
+				try {
+					expect( function() {
+						unleash.refreshFeatures();
+					} ).toThrow( "UnleashTest.Unavailable" );
+					expect( unleash.getFeatures() ).toBe( features );
+				} finally {
+					unleash.setClient( client );
+				}
 			} );
 		} );
 	}
