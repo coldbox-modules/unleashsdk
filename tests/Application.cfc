@@ -25,7 +25,6 @@ component {
 	};
 
     function onRequestStart() {
-        systemOutput( "Starting request" );
         setting requestTimeout="180";
         structDelete( application, "cbController" );
         structDelete( application, "wirebox" );
